@@ -158,24 +158,24 @@ if (!class_exists('rsssl_admin_mixed_content_fixer')) {
             //now replace these links
             $str = str_replace($search_array, $ssl_array, $str);
 
-            //replace all http links except hyperlinks
-            //all tags with src attr are already fixed by str_replace
-            $pattern = array(
-                '/url\([\'"]?\K(http:\/\/)(?=[^)]+)/i',
-                '/<link [^>]*?href=[\'"]\K(http:\/\/)(?=[^\'"]+)/i',
-                '/<meta property="og:image" [^>]*?content=[\'"]\K(http:\/\/)(?=[^\'"]+)/i',
-                '/<form [^>]*?action=[\'"]\K(http:\/\/)(?=[^\'"]+)/i',
-            );
+            if (!RSSSL()->rsssl_front_end->lean_mode) {
+                //replace all http links except hyperlinks
+                //all tags with src attr are already fixed by str_replace
+                $pattern = array(
+                    '/url\([\'"]?\K(http:\/\/)(?=[^)]+)/i',
+                    '/<link [^>]*?href=[\'"]\K(http:\/\/)(?=[^\'"]+)/i',
+                    '/<meta property="og:image" [^>]*?content=[\'"]\K(http:\/\/)(?=[^\'"]+)/i',
+                    '/<form [^>]*?action=[\'"]\K(http:\/\/)(?=[^\'"]+)/i',
+                );
+                $str = preg_replace($pattern, 'https://', $str);
 
-            $str = preg_replace($pattern, 'https://', $str);
-
-            /* handle multiple images in srcset */
-            $str = preg_replace_callback('/<img[^\>]*[^\>\S]+srcset=[\'"]\K((?:[^"\'\s,]+\s*(?:\s+\d+[wx])(?:,\s*)?)+)["\']/', array($this, 'replace_src_set'), $str);
+                /* handle multiple images in srcset */
+                $str = preg_replace_callback('/<img[^\>]*[^\>\S]+srcset=[\'"]\K((?:[^"\'\s,]+\s*(?:\s+\d+[wx])(?:,\s*)?)+)["\']/', array($this, 'replace_src_set'), $str);
+            }
 
             $str = str_replace("<body", '<body data-rsssl=1', $str);
 
             return apply_filters("rsssl_fixer_output", $str);
-
         }
 
         /*

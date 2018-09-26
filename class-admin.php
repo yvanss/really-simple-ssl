@@ -339,7 +339,7 @@ class rsssl_admin extends rsssl_front_end
 
     /*
       This message is shown when no SSL is not enabled by the user yet
-  */
+    */
 
 
     public function show_notice_activate_ssl()
@@ -2188,6 +2188,27 @@ class rsssl_admin extends rsssl_front_end
                                     </td>
                                     <td></td>
                                 </tr>
+                                <?php if (RSSSL()->rsssl_server->uses_htaccess() && (!is_multisite() || !RSSSL()->rsssl_multisite->is_per_site_activated_multisite_subfolder_install())) {?>
+                                <tr>
+                                    <td>
+                                        <?php echo ($this->htaccess_contains_redirect_rules()) ? $this->img("success") : $this->img("warning"); ?>
+                                    </td>
+                                    <td>
+                                        <?php
+                                        if ($this->htaccess_contains_redirect_rules()) {
+                                            _e(".htaccess 301 redirect to https set", "really-simple-ssl");
+                                        } else {
+                                            if (is_writable($this->ABSpath . ".htaccess")) {
+                                                _e("The .htaccess redirect is not enabled. Enabling it will improve redirect speed. You can enable a .htaccess redirect in the settings.", "really-simple-ssl");
+                                            } else {
+                                                _e("The .htaccess is not writable. To enable, set the .htaccess manually or set the .htaccess file to writable.", "really-simple-ssl");
+                                            }
+                                        }
+                                        ?>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                            <?php } ?>
 
                                 <?php
                             }
@@ -2231,6 +2252,7 @@ class rsssl_admin extends rsssl_front_end
                                 if ($this->htaccess_redirect) echo "* htaccess redirect<br>";
                                 if ($this->wp_redirect) echo "* WordPress redirect<br>";
                                 if ($this->autoreplace_insecure_links) echo "* Mixed content fixer<br>";
+                                if ($this->lean_mode) echo "* Lean mode<br>";
 
                                 echo "SERVER: " . RSSSL()->rsssl_server->get_server() . "<br>";
                                 if (is_multisite()) {
@@ -2541,6 +2563,7 @@ class rsssl_admin extends rsssl_front_end
         register_setting('rlrsssl_options', 'rlrsssl_options', array($this, 'options_validate'));
         add_settings_section('rlrsssl_settings', __("Settings", "really-simple-ssl"), array($this, 'section_text'), 'rlrsssl');
         add_settings_field('id_autoreplace_insecure_links', __("Auto replace mixed content", "really-simple-ssl"), array($this, 'get_option_autoreplace_insecure_links'), 'rlrsssl', 'rlrsssl_settings');
+        add_settings_field('id_lean_mode', __("Lean mode", "really-simple-ssl"), array($this, 'get_option_lean_mode'), 'rlrsssl', 'rlrsssl_settings');
 
         //only show option to enable or disable mixed content and redirect when SSL is detected
         if ($this->ssl_enabled) {
@@ -2625,6 +2648,12 @@ class rsssl_admin extends rsssl_front_end
             $newinput['autoreplace_insecure_links'] = TRUE;
         } else {
             $newinput['autoreplace_insecure_links'] = FALSE;
+        }
+
+        if (!empty($input['lean_mode']) && $input['lean_mode'] == '1') {
+            $newinput['lean_mode'] = TRUE;
+        } else {
+            $newinput['lean_mode'] = FALSE;
         }
 
         if (!empty($input['debug']) && $input['debug'] == '1') {
@@ -2895,6 +2924,22 @@ class rsssl_admin extends rsssl_front_end
         }
         echo '<input ' . $disabled . ' id="rlrsssl_options" name="rlrsssl_options[autoreplace_insecure_links]" size="40" type="checkbox" value="1"' . checked(1, $autoreplace_mixed_content, false) . ' />';
         RSSSL()->rsssl_help->get_help_tip(__("In most cases you need to leave this enabled, to prevent mixed content issues on your site.", "really-simple-ssl"));
+        echo $comment;
+    }
+
+    public function get_option_lean_mode()
+    {
+        $lean_mode = $this->lean_mode;
+        $disabled = "";
+        $comment = "";
+
+//        if (is_multisite() && rsssl_multisite::this()->lean_mode) {
+//            $disabled = "disabled";
+//            $lean_mode = TRUE;
+//            $comment = __("This option is enabled on the network menu.", "really-simple-ssl");
+//        }
+        echo '<input ' . $disabled . ' id="rlrsssl_options" name="rlrsssl_options[lean_mode]" size="40" type="checkbox" value="1"' . checked(1, $lean_mode, false) . ' />';
+        RSSSL()->rsssl_help->get_help_tip(__("You can enable lean mode to increase minimize performance impact.", "really-simple-ssl"));
         echo $comment;
     }
 
