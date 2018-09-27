@@ -1091,6 +1091,7 @@ class rsssl_admin extends rsssl_front_end
             'htaccess_warning_shown' => $this->htaccess_warning_shown,
             'ssl_success_message_shown' => $this->ssl_success_message_shown,
             'autoreplace_insecure_links' => $this->autoreplace_insecure_links,
+            'lean_mode' => $this->lean_mode,
             'plugin_db_version' => $this->plugin_db_version,
             'debug' => $this->debug,
             'do_not_edit_htaccess' => $this->do_not_edit_htaccess,
